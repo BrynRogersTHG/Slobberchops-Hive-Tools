@@ -22,12 +22,19 @@
   <div class="max-w-4xl mx-auto p-6">
     <h1 class="text-4xl font-bold text-center text-red-600 mb-8">Slobberchops HIVE Tools - Who Didn't Vote? v1.1</h1>
 
-    <!-- Input for username -->
-    <div class="mb-6">
-      <label for="username" class="block text-lg font-medium text-gray-800">Enter Hive Username:</label>
-      <input type="text" id="username" placeholder="Enter username" class="mt-2 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      <button onclick="startAnalysis()" class="mt-4 p-3 w-full bg-red-600 text-white rounded-lg hover:bg-red-600 transition">Analyze Most Recent Post</button>
-    </div>
+    <div class="mb-6 flex items-center space-x-4">
+        <!-- Input for username -->
+        <div class="w-full">
+          <label for="username" class="block text-lg font-medium text-gray-800">Enter Hive Username:</label>
+          <input type="text" id="username" placeholder="Enter username" class="mt-2 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button onclick="startAnalysis()" class="mt-4 p-3 w-full bg-red-600 text-white rounded-lg hover:bg-red-600 transition">Analyze Most Recent Post</button>
+        </div>
+      
+        <!-- Image on the right -->
+        <div class="mt-10">
+            <img src="img/sml-hive-blockchain-hive-logo.png" alt="HIVE Logo" class="w-16 h-16" />
+          </div>
+      </div>
 
     <!-- Explanation Text -->
     <div class="bg-white p-6 rounded-lg shadow-md mb-6">
