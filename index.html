@@ -4,37 +4,49 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Slobberchops HIVE Tools - Who Didn't Vote?</title>
-  <style>
-    body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
-    #output { white-space: pre-wrap; background: #fff; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
-    .green { color: green; }
-    .red { color: red; }
-    .cyan { color: teal; }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans leading-relaxed text-gray-900">
+
+  <div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-4xl font-bold text-center text-blue-600 mb-8">Slobberchops HIVE Tools - Who Didn't Vote? v1.1</h1>
+
+    <!-- Input for username -->
+    <div class="mb-6">
+      <label for="username" class="block text-lg font-medium text-gray-800">Enter Hive Username:</label>
+      <input type="text" id="username" placeholder="Enter username" class="mt-2 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <button onclick="startAnalysis()" class="mt-4 p-3 w-full bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Analyze Most Recent Post</button>
+    </div>
+
+    <!-- Explanation Text -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+      <p class="text-gray-700 text-lg mb-4">You posted your latest masterpiece on the HIVE blockchain. It’s a true work of art, and I mean move over J.K. Rowling, this is going to put Harry in the shade.</p>
+      <p class="text-gray-700 text-lg mb-4">..the comments roll in, but wait, you smell something fishy?</p>
+      <p class="text-gray-700 text-lg mb-4">That person commented but you didn’t see a vote, even a lousy, measly 1% vote. They are consuming data that is earth-shattering, enough to change their whole lives and don’t have the decency to land even a tiny vote?</p>
+      <p class="text-gray-700 text-lg mb-4">In the past, you would need to hunt through the chain to make sure ‘this one’ is not one of those comment hounds, intent on preying on your benevolent nature to get a free lunch.</p>
+      <p class="text-gray-700 text-lg mb-4">Well.... those days are now and truly over. Just add your name, and ‘Who Didn’t Vote’ will check your account, grab that Chef-d'œuvre of yours, cross-reference the comments against the votes, finally naming and shaming those leeching varmin.</p>
+      <p class="text-gray-700 text-lg mb-4">So what then?</p>
+      <p class="text-gray-700 text-lg mb-4">That’s up to you mate! Ignore them, comment back with no vote, let them know of their dastardly conduct, or be a sucker and give them a vote if you want to encourage this incorrigible behaviour.</p>
+    </div>
+
+    <!-- Output Section -->
+    <div id="output" class="p-4 bg-white border border-gray-300 rounded-lg shadow-md">
+      <p class="text-gray-500">Waiting for analysis...</p>
+    </div>
+
+    <div id="loading" class="hidden">
+      <p class="text-center text-blue-500 font-bold">Loading...</p>
+      <div class="text-center">
+        <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 118 8 8 8 0 01-8-8zm8 0a8 8 0 00-8 8 8 8 0 0016 0 8 8 0 00-8-8z"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
   <script>
     const apiUrl = "https://api.hive.blog";
-  </script>
-</head>
-<body>
-  <h1>Slobberchops HIVE Tools - Who Didn't Vote?</h1>
-
-  <!-- Input for username -->
-  <label for="username">Enter Hive Username:</label>
-  <input type="text" id="username" placeholder="Enter username" />
-  <button onclick="startAnalysis()">Analyze Most Recent Post</button>
-
- <!-- Added text to explain the purpose of the tool -->
- <p>You posted your latest masterpiece on the HIVE blockchain. It’s a true work of art, and I mean move over J.K. Rowling, this is going to put Harry in the shade.</p>
- <p>..the comments roll in, but wait, you smell something fishy?</p>
- <p>That person commented but you didn’t see a vote, even a lousy, measly 1% vote. They are consuming data that is earth-shattering, enough to change their whole lives and don’t have the decency to land even a tiny vote?</p>
- <p>In the past, you would need to hunt through the chain to make sure ‘this one’ is not one of those comment hounds, intent on preying on your benevolent nature to get a free lunch.</p>
- <p>Well.... those days are now and truly over. Just add your name, and ‘Who Didn’t Vote’ will check your account, grab that Chef-d'œuvre of yours, cross-reference the comments against the votes, finally naming and shaming those leeching varmin.</p>
- <p>So what then?</p>
- <p>That’s up to you mate! Ignore them, comment back with no vote, let them know of their dastardly conduct, or be a sucker and give them a vote if you want to encourage this incorrigible behaviour.</p>
-
-  <div id="output">Waiting...</div>
-
-  <script>
     async function getLatestPost(author) {
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -88,25 +100,36 @@
     }
 
     async function crossReference(author, permlink) {
-      const output = document.getElementById("output");
-      const voters = await getPostVotes(author, permlink);
-      const commenters = await getPostCommenters(author, permlink);
+        const output = document.getElementById("output");
+        const loading = document.getElementById("loading");
+        const voters = await getPostVotes(author, permlink);
+        const commenters = await getPostCommenters(author, permlink);
 
-      output.innerHTML = `<span class="cyan">Found POST: '${permlink}'</span>\n--------------------------\n`;
+        // Show loading indicator while waiting for data
+        loading.classList.remove("hidden");
+        output.classList.add("hidden");
 
-      if (voters.length && commenters.length) {
-        commenters.forEach(commenter => {
-          if (voters.includes(commenter)) {
-            output.innerHTML += `<span class="green"> ${commenter}: Commenter did vote</span>\n`;
-          } else {
-            output.innerHTML += `<span class="red"> ${commenter}: Commenter DID NOT vote</span>\n`;
-          }
-        });
-      } else {
-        output.innerHTML += "No commenters or voters found.";
-      }
-    }
+        output.innerHTML = `<p class="text-teal-500">Found POST: '${permlink}'</p><ul class="mt-4 space-y-2">`;
 
+        if (voters.length && commenters.length) {
+            commenters.forEach(commenter => {
+            const status = voters.includes(commenter) ? 'did vote' : 'DID NOT vote';
+            const colorClass = status === 'did vote' ? 'text-green-500' : 'text-red-500';
+            output.innerHTML += `
+                <li class="${colorClass}">
+                ${commenter}: Commenter ${status}
+                </li>`;
+            });
+            output.innerHTML += `</ul>`;
+        } else {
+            output.innerHTML = "<p class='text-gray-500'>No commenters or voters found.</p>";
+        }
+
+        // Hide loading and show the result
+        loading.classList.add("hidden");
+        output.classList.remove("hidden");
+        }
+        
     async function startAnalysis() {
       const username = document.getElementById("username").value.trim(); // Get the username input
       if (username) {
