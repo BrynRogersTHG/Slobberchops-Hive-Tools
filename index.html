@@ -75,25 +75,30 @@
 
   <script>
     const apiUrl = "https://api.hive.blog";
+    
     async function getLatestPost(author) {
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "condenser_api.get_discussions_by_author_before_date",
-          params: [author, "", "1970-01-01T00:00:00", 1],
-          id: 1,
-        })
-      });
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      method: "condenser_api.get_discussions_by_author_before_date",
+      params: [author, "", "1970-01-01T00:00:00", 1],
+      id: 1,
+    })
+  });
 
-      const data = await response.json();
-      if (data.result && data.result.length > 0) {
-        return data.result[0].permlink;
-      } else {
-        return null;
-      }
-    }
+  const data = await response.json();
+  if (data.result && data.result.length > 0) {
+    const post = data.result[0];
+    return {
+      permlink: post.permlink,
+      created: post.created
+    };
+  } else {
+    return null;
+  }
+}
 
     async function getPostVotes(author, permlink) {
       const response = await fetch(apiUrl, {
@@ -127,50 +132,61 @@
       return data.result?.map(comment => comment.author) || [];
     }
 
-    async function crossReference(author, permlink) {
-        const output = document.getElementById("output");
-        const loading = document.getElementById("loading");
-        const voters = await getPostVotes(author, permlink);
-        const commenters = await getPostCommenters(author, permlink);
+    async function crossReference(author, permlink, created) {
+  const output = document.getElementById("output");
+  const loading = document.getElementById("loading");
 
-        // Show loading indicator while waiting for data
-        loading.classList.remove("hidden");
-        output.classList.add("hidden");
+  const voters = await getPostVotes(author, permlink);
+  const commenters = await getPostCommenters(author, permlink);
 
-        output.innerHTML = `<p class="text-teal-500">Found POST: '${permlink}'</p><ul class="mt-4 space-y-2">`;
+  loading.classList.remove("hidden");
+  output.classList.add("hidden");
 
-        if (voters.length && commenters.length) {
-            commenters.forEach(commenter => {
-            const status = voters.includes(commenter) ? 'did vote' : 'DID NOT vote';
-            const colorClass = status === 'did vote' ? 'text-green-500' : 'text-red-500';
-            output.innerHTML += `
-                <li class="${colorClass}">
-                ${commenter}: Commenter ${status}
-                </li>`;
-            });
-            output.innerHTML += `</ul>`;
-        } else {
-            output.innerHTML = "<p class='text-gray-500'>No commenters or voters found.</p>";
-        }
+  const date = new Date(created).toLocaleString();
 
-        // Hide loading and show the result
-        loading.classList.add("hidden");
-        output.classList.remove("hidden");
-        }
+  output.innerHTML = `
+    <p class="text-blue-500">  
+    Found POST: 
+    <a href="https://peakd.com/@${author}/${permlink}" target="_blank" class="underline hover:text-teal-700">
+    ${permlink}
+    </a>
+    </p>
+    <p class="text-sm text-gray-600 mb-2">Published on: ${date}</p>
+    <ul class="mt-4 space-y-2">
+  `;
+
+  if (voters.length && commenters.length) {
+    commenters.forEach(commenter => {
+      const status = voters.includes(commenter) ? 'did vote' : 'DID NOT vote';
+      const colorClass = status === 'did vote' ? 'text-green-500' : 'text-red-500';
+      output.innerHTML += `
+        <li class="${colorClass}">
+          ${commenter}: Commenter ${status}
+        </li>`;
+    });
+    output.innerHTML += `</ul>`;
+  } else {
+    output.innerHTML = "<p class='text-gray-500'>No commenters or voters found.</p>";
+  }
+
+  loading.classList.add("hidden");
+  output.classList.remove("hidden");
+}
         
-    async function startAnalysis() {
-      const username = document.getElementById("username").value.trim(); // Get the username input
-      if (username) {
-        const permlink = await getLatestPost(username);
-        if (permlink) {
-          await crossReference(username, permlink);
-        } else {
-          document.getElementById("output").textContent = "No post found.";
-        }
-      } else {
-        alert("Stop being a smart-arse, and add a proper username.");
-      }
+async function startAnalysis() {
+  const username = document.getElementById("username").value.trim();
+  if (username) {
+    const post = await getLatestPost(username);
+    if (post) {
+      await crossReference(username, post.permlink, post.created);
+    } else {
+      document.getElementById("output").textContent = "No post found.";
     }
+  } else {
+    alert("Stop being a smart-arse, and add a proper username.");
+  }
+}
+  
   </script>
 </body>
 </html>
